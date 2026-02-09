@@ -1,0 +1,13 @@
+#!/usr/bin/env python3
+import sys
+import subprocess
+from pathlib import Path
+
+_DIR = Path(__file__).resolve().parent
+_PROGRAM_DIR = _DIR.parent
+_VENV_DIR = _PROGRAM_DIR / ".venv"
+
+venv_python = _VENV_DIR / "bin" / "python"
+python_exe = str(venv_python) if venv_python.exists() else "python3"
+
+subprocess.check_call([python_exe, "-m", "linux_voice_assistant", *sys.argv[1:]])

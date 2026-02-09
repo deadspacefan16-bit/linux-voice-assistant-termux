@@ -1,0 +1,35 @@
+#!/usr/bin/env python3
+import argparse
+import os
+import subprocess
+import venv
+from pathlib import Path
+
+_DIR = Path(__file__).parent
+_PROGRAM_DIR = _DIR.parent
+_VENV_DIR = _PROGRAM_DIR / ".venv"
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--dev", action="store_true", help="Install dev requirements")
+args = parser.parse_args()
+
+def is_termux() -> bool:
+    # Termux sets PREFIX=/data/data/com.termux/files/usr
+    return os.environ.get("PREFIX", "").startswith("/data/data/com.termux/")
+
+# Create virtual environment
+builder = venv.EnvBuilder(with_pip=True)
+context = builder.ensure_directories(_VENV_DIR)
+builder.create(_VENV_DIR)
+
+pip = [context.env_exe, "-m", "pip"]
+
+# IMPORTANT: On Termux, don't upgrade pip via pip; use `pkg upgrade` instead.
+if not is_termux():
+    subprocess.check_call(pip + ["install", "--upgrade", "pip", "setuptools", "wheel"])
+
+# Install requirements (editable)
+subprocess.check_call(pip + ["install", "-e", str(_PROGRAM_DIR)])
+
+if args.dev:
+    subprocess.check_call(pip + ["install", "-e", f"{_PROGRAM_DIR}[dev]"])
